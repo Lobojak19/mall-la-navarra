@@ -419,11 +419,11 @@ function reviseArchitecture(){
  const facade=shell[1];
  box(facade,.63,1.85,0,1.26,3.7,.18,stoneSurface);box(facade,5.73,1.85,0,1.06,3.7,.18,stoneSurface);
  box(facade,3.23,.74,0,3.94,1.48,.18,stoneSurface);box(facade,3.23,3.28,0,3.94,.84,.18,stoneSurface);
- box(facade,3.23,2.16,.31,3.94,1.36,.12,metalDark);box(facade,3.23,1.5,-.13,4.05,.2,.7,metalDark);
+ box(facade,3.23,2.16,1.03,3.94,1.36,.12,metalDark);box(facade,3.23,1.5,.45,3.94,.2,.9,metalDark);
  box(facade,3.23,2.81,-.035,3.88,.025,.035,warmLED);
  facadeGarden(facade);
  // Continuous side stone wall, keeping the front balconies open.
- for(let k=1;k<3;k++){wall(shell[k],12.62,0,12.62,8.55,k===1?3.7:3.58);for(const x of [6.95,11.9])plant(floors[k],x,0,.6,.9);}
+ for(let k=1;k<3;k++){for(const x of [6.95,11.9])plant(floors[k],x,0,.6,.9);}
  const leftFront=box(shell[0],3.12,1.97,-.065,6.24,3.94,.19,stoneSurface);
  leftFront.name='Fachada completa de mármol';
  // Remove the redundant glass and open door behind the new left stone façade.
@@ -447,8 +447,13 @@ function reviseArchitecture(){
  for(const y of [1.02,2.08])box(neighbours,-1.9,y,-.37,1.24,.025,.035,brass);
  for(const sign of [-1,1]){const slope=box(neighbours,-3.1,3.36,3.7+sign*2.08,6.3,.12,4.52,terracotta);slope.rotation.x=sign*.25;for(let x=-6.15;x<.03;x+=.22){const ridge=new T.Mesh(new T.CylinderGeometry(.09,.09,4.54,7,1,true,0,Math.PI),terracotta);ridge.rotation.x=Math.PI/2+sign*.25;ridge.position.set(x,3.41,3.7+sign*2.08);neighbours.add(ridge);}}
  // A service alley separates the right-hand buildings from the mall.
- box(neighbours,18.6,2.25,7.3,6.5,4.5,14,stucco);box(neighbours,18.6,4.55,7.3,6.8,.16,14.3,m.roof);
- for(const x of [16.6,18.6,20.6]){box(neighbours,x,1.4,.23,1.5,2.8,.09,metalDark);box(neighbours,x,3.35,.19,1.4,.5,.05,glassSurface);}
+ box(neighbours,26.6,2.25,7.3,6.5,4.5,14,stucco);box(neighbours,26.6,4.55,7.3,6.8,.16,14.3,m.roof);
+ for(const x of [24.6,26.6,28.6]){box(neighbours,x,1.4,.23,1.5,2.8,.09,metalDark);box(neighbours,x,3.35,.19,1.4,.5,.05,glassSurface);}
+ const rearHouse=new T.Group();rearHouse.name='Casa posterior de dos pisos';rearHouse.position.z=-4.39;neighbours.add(rearHouse);
+ box(rearHouse,6.35,3.1,22,11.8,6.2,8,stucco);box(rearHouse,6.35,3.13,22,12,.13,8.15,stoneSurface);
+ for(const y of [1.55,4.7])for(const x of [2.1,4.9,7.7,10.5]){box(rearHouse,x,y,17.94,1.45,1.65,.1,metalDark);box(rearHouse,x,y,17.87,1.27,1.47,.025,glassSurface);box(rearHouse,x,y,17.84,.035,1.47,.035,interiorWood);}
+ box(rearHouse,6.35,1.15,17.93,1.05,2.3,.14,interiorWood);
+ for(const side of [-1,1]){const slope=box(rearHouse,6.35,6.86,22+side*2.1,12.5,.13,4.55,terracotta);slope.rotation.x=side*.3;for(let x=.2;x<12.6;x+=.3){const tile=new T.Mesh(new T.CylinderGeometry(.105,.105,4.55,6,1,true,0,Math.PI),terracotta);tile.rotation.x=Math.PI/2+side*.3;tile.position.set(x,6.94,22+side*2.1);rearHouse.add(tile);}}
  // Utility cabinets at the back of the right elevation, not at the entrance.
  const service=new T.Group();service.position.set(12.82,0,11.75);service.rotation.y=-Math.PI/2;neighbours.add(service);
  for(let i=0;i<3;i++){const x=(i-1)*.68;box(service,x,1.2,0,.58,.95,.22,brushedSteel);box(service,x,1.33,-.13,.34,.23,.02,glassSurface);const s=textSign(['LUZ','AGUA','GAS'][i],.42,.12,'#d9ddd7');s.position.set(x,1.81,-.14);s.scale.z=-1;service.add(s);tube(service,[[x,.02,.02],[x,.71,.02]],.021,i===2?brass:brushedSteel);for(const y of [.88,1.12])cyl(service,x,y,-.16,.065,.04,m.dark);}
@@ -519,11 +524,10 @@ function facadeGarden(g){
  const geo=new T.PlaneGeometry(.27,1,3,7),p=geo.attributes.position;
  for(let i=0;i<p.count;i++){const t=p.getY(i)+.5;p.setXYZ(i,p.getX(i)*Math.sin(Math.PI*Math.max(.015,Math.min(.985,t))),t,Math.sin(t*Math.PI*.85)*.18);}geo.computeVertexNormals();
  const dark=leafMat,light=leafAccent;
- for(let i=0;i<11;i++){const x=1.5+i*.34;for(let j=0;j<5;j++){const a=new T.Mesh(geo,j%3?dark:light);a.position.set(x,1.58,-.24+(i%2)*.06);a.rotation.set(-.15-(j%3)*.19,(i*1.7+j*1.2), (j-2)*.2);a.scale.set(.8+(j%2)*.3,.48+((i*3+j)%7)*.065,1);garden.add(a);}}
- const vineGeo=geo.clone();vineGeo.scale(.6,.36,.5);
- for(let i=0;i<13;i++){const x=1.45+i*.3;for(let j=0;j<3+(i%3);j++){const a=new T.Mesh(vineGeo,j%2?dark:light);a.position.set(x+Math.sin(j*2+i)*.075,1.53-j*.13,-.49-Math.sin(j*.8)*.03);a.rotation.set(.1,i*.8,Math.PI+(j%2?.5:-.5));garden.add(a);}}
+ for(let i=0;i<4;i++){const x=1.85+i*.91;box(garden,x,1.72,.54,.66,.28,.54,metalDark);box(garden,x,1.865,.54,.6,.015,.48,m.soil);for(let j=0;j<8;j++){const a=new T.Mesh(geo,j%3?dark:light);a.position.set(x,1.87,.54);a.rotation.set(-.14-(j%3)*.08,i*1.7+j*1.2,(j%3-1)*.16);a.scale.set(.85,.48+((i*3+j)%5)*.04,1);garden.add(a);}}
  const petalGeo=new T.SphereGeometry(.045,6,5),petalMat=new T.MeshStandardMaterial({color:0xd9873f,roughness:.72});
- for(let i=0;i<7;i++){const x=1.8+i*.44,y=2.13+(i%3)*.065;const f=new T.Mesh(petalGeo,petalMat);f.scale.set(.75,1.8,.75);f.position.set(x,y,-.34);garden.add(f);cyl(garden,x,(1.61+y)/2,-.34,.009,y-1.61,leafMat);}
+ for(let i=0;i<4;i++){const x=1.85+i*.91,y=2.24+(i%3)*.055;const f=new T.Mesh(petalGeo,petalMat);f.scale.set(.75,1.8,.75);f.position.set(x,y,.45);garden.add(f);cyl(garden,x,(1.87+y)/2,.45,.009,y-1.87,leafMat);}
+ garden.updateWorldMatrix(true,true);const gardenBounds=new T.Box3().setFromObject(garden).applyMatrix4(garden.matrixWorld.clone().invert());garden.userData.recessBounds={min: gardenBounds.min.toArray(),max:gardenBounds.max.toArray()};
  return garden;
 }
 
