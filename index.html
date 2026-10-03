@@ -587,7 +587,7 @@ function finishArchitectureV5(){
  const ceramic=new T.MeshPhysicalMaterial({map:stoneTex,color:0x55685c,metalness:.08,roughness:.25,clearcoat:.5});ceramic.userData.unit=1.5;
  function erase(a){a.parent.remove(a);const i=wallTops.indexOf(a);if(i>=0)wallTops.splice(i,1);}
  function steelRail(g,x1,z1,x2,z2){const len=Math.hypot(x2-x1,z2-z1),r=new T.Group();r.position.set(x1,0,z1);r.rotation.y=-Math.atan2(z2-z1,x2-x1);g.add(r);r.name='Barandal inoxidable';box(r,len/2,1.08,0,len,.09,.09,stainless);box(r,len/2,.17,0,len,.045,.045,stainless);for(let x=0;x<len+.02;x+=.18)cyl(r,Math.min(x,len),.62,0,.018,.92,stainless);for(let x=0;x<len+.02;x+=1.1)cyl(r,Math.min(x,len),.57,0,.04,1.14,stainless);return r;}
- function lounge(g,x,z,rot=0){const chair=new T.Group();chair.position.set(x,0,z);chair.rotation.y=rot;g.add(chair);chair.name='Sillón terraza';box(chair,0,.43,0,.56,.15,.55,fabric);box(chair,0,.75,.24,.58,.5,.11,fabric);for(const a of [-1,1]){box(chair,a*.31,.63,0,.08,.12,.56,interiorWood);for(const b of [-1,1])box(chair,a*.24,.21,b*.2,.035,.42,.035,stainless);}}
+ function lounge(g,x,z,rot=0){const chair=new T.Group();chair.position.set(x,0,z);chair.rotation.y=rot;g.add(chair);chair.name='SillÃ³n terraza';box(chair,0,.43,0,.56,.15,.55,fabric);box(chair,0,.75,.24,.58,.5,.11,fabric);for(const a of [-1,1]){box(chair,a*.31,.63,0,.08,.12,.56,interiorWood);for(const b of [-1,1])box(chair,a*.24,.21,b*.2,.035,.42,.035,stainless);}}
  for(let k=0;k<3;k++){
   const g=floors[k],span=k===0?4.2:k===1?3.96:3.84;
   for(const a of [...g.children])if(a.isMesh){const p=a.geometry.parameters||{};
@@ -599,7 +599,7 @@ function finishArchitectureV5(){
   for(const x of [.15,6.45,12.55])box(g,x,span-.2,6.8,.3,.4,13.6,concrete).name='Viga longitudinal';
   for(const z of [.15,4.2,8.6,13.45]){if(k>0&&z===4.2){box(g,3.55,span-.2,z,7.1,.4,.3,concrete).name='Viga transversal';box(g,11.96,span-.2,z,1.48,.4,.3,concrete).name='Viga transversal';}else box(g,6.35,span-.2,z,12.7,.4,.3,concrete).name='Viga transversal';}
   if(k>0){
-   for(const a of [...g.children])if(a.isGroup&&a.children.some(b=>b.isMesh&&b.geometry.parameters?.height===.1)&&a.children.some(b=>b.isMesh&&b.geometry.parameters?.height===.9)){const start=a.position.clone();const len=a.children.find(b=>b.geometry.parameters?.height===.1).geometry.parameters.width;const end=new T.Vector3(len,0,0).applyAxisAngle(new T.Vector3(0,1,0),a.rotation.y).add(start);erase(a);if(start.z===0){steelRail(g,6.6,-1.1,13.8,-1.1);}else if(start.x===12.7){steelRail(g,13.8,-1.1,13.8,8.5);steelRail(g,13.8,8.5,12.7,8.5);}else steelRail(g,start.x,start.z,end.x,end.z);}
+   for(const a of [...g.children])if(a.isGroup&&a.children.some(b=>b.isMesh&&b.geometry.parameters?.height===.1)&&a.children.some(b=>b.isMesh&&b.geometry.parameters?.height===.9)){const start=a.position.clone();const len=a.children.find(b=>b.geometry.parameters?.height===.1).geometry.parameters.width;const end=new T.Vector3(len,0,0).applyAxisAngle(new T.Vector3(0,1,0),a.rotation.y).add(start);erase(a);if(start.x===12.7){steelRail(g,13.8,-1.1,13.8,8.5);steelRail(g,13.8,8.5,12.7,8.5);}else if(start.z===0){steelRail(g,6.6,-1.1,13.8,-1.1);}else steelRail(g,start.x,start.z,end.x,end.z);}
    box(g,10.2,-.2,-.55,7.2,.4,1.1,concrete);box(g,13.25,-.2,3.7,1.1,.4,9.6,concrete);
    box(g,10.2,.014,-.55,7.2,.028,1.1,paleFloor);box(g,13.25,.014,3.7,1.1,.028,9.6,paleFloor);
    for(const [x,z,r]of [[7.4,-.35,0],[9.3,-.35,0],[11.3,-.35,0],[13.1,2.6,-Math.PI/2],[13.1,5.6,-Math.PI/2]])lounge(g,x,z,r);
