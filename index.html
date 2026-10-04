@@ -741,6 +741,99 @@ function recreateNeighbourhoodV9(){
 }
 const siteReferenceV9=recreateNeighbourhoodV9();
 
+function polishThreeV10(){
+ const mobile=matchMedia('(pointer:coarse)').matches;
+ renderer.setPixelRatio(Math.min(devicePixelRatio,mobile?1.5:2));
+ sun.shadow.normalBias=.025;sun.shadow.bias=-.00012;sun.shadow.radius=2;
+ sun.shadow.mapSize.set(mobile?2048:4096,mobile?2048:4096);
+ Object.assign(sun.shadow.camera,{left:-26,right:26,top:28,bottom:-24});sun.shadow.camera.updateProjectionMatrix();
+ sun.intensity=1.65;hemi.intensity=.65;renderer.toneMappingExposure=1.02;
+ const mats=new Set();scene.traverse(a=>{if(a.isMesh){for(const m of Array.isArray(a.material)?a.material:[a.material])mats.add(m);}});
+ const anisotropy=renderer.capabilities?.getMaxAnisotropy?.()||1;
+ for(const m of mats){for(const key of ['map','bumpMap','normalMap','roughnessMap'])if(m[key]){m[key].anisotropy=Math.min(anisotropy,mobile?4:8);m[key].needsUpdate=true;}if(m.isMeshStandardMaterial)m.envMapIntensity=m.metalness>.7?1.25:.55;}
+ stoneSurface.roughness=.46;stoneSurface.clearcoat=.12;stoneSurface.bumpScale=.004;
+ paleFloor.roughness=.43;paleFloor.clearcoat=.16;paleFloor.bumpMap=floorTex;paleFloor.bumpScale=.002;
+ glassSurface.color.set(0xe1ece8);glassSurface.metalness=0;glassSurface.roughness=.09;glassSurface.opacity=.19;glassSurface.envMapIntensity=.85;
+ interiorWood.roughness=.65;brushedSteel.color.set(0xd3cec3);brushedSteel.metalness=.88;brushedSteel.roughness=.34;
+ // Fill out the palm crowns with curved, double-sided leaflets.
+ const foliage=new T.MeshStandardMaterial({color:0x526f36,roughness:.82,side:T.DoubleSide});
+ const blade=new T.Shape();blade.moveTo(0,0);blade.bezierCurveTo(-.10,.3,-.09,.75,0,1);blade.bezierCurveTo(.09,.7,.1,.25,0,0);
+ const bladeGeo=new T.ShapeGeometry(blade,8);const pos=bladeGeo.attributes.position;for(let i=0;i<pos.count;i++)pos.setZ(i,Math.sin(pos.getY(i)*Math.PI)*.10);bladeGeo.computeVertexNormals();
+ for(const [x,z,h]of [[25,20,7],[25,-2,7],[17,19,6],[-11,-5,8],[-27,9,7],[-38,-12,8],[-38,16,8],[32,-5,8]]){
+  for(let i=0;i<10;i++){const a=i*Math.PI/5;for(let j=1;j<7;j++)for(const s of [-1,1]){const r=j*.45;const mesh=new T.Mesh(bladeGeo,foliage);mesh.position.set(x+Math.cos(a)*r,h+Math.sin(j/6*Math.PI)*1.1-j*.13,z+Math.sin(a)*r);mesh.rotation.set(-Math.PI/2+.35,a+s*1.15,s*.3);mesh.scale.setScalar(.9-j*.07);mesh.castShadow=true;siteReferenceV9.group.add(mesh);}}
+ }
+ // Softer concrete and asphalt reflect the dusk without looking lacquered.
+ scene.fog.near=55;scene.fog.far=150;
+ renderer.shadowMap.needsUpdate=true;
+ return {quality:mobile?'mobile':'desktop',materials:mats.size};
+}
+const polishV10=polishThreeV10();
+
+function reviseFacadeV11(){
+ // Restore the solid service enclosure; timber now sits behind the glazing.
+ for(let k=0;k<2;k++){
+  const h=[3.8,3.56][k];
+  for(const a of [...shell[k].children]){
+   const p=a.geometry?.parameters;
+   if(a.material===interiorWood&&p?.radiusTop&&a.position.x>12.5&&a.position.z>8.55)shell[k].remove(a);
+   if(a.material===metalDark&&p?.depth>4.8&&p.height<.1&&a.position.x>12.5&&a.position.z>8.55)shell[k].remove(a);
+  }
+  const wall=box(shell[k],12.62,h/2,11.04,.18,h,4.92,stoneSurface);wall.name='Mármol restaurado en zona de servicios';wallTops.push(wall);
+ }
+ for(let i=0;i<layoutV4.panels.length;i++){
+  const panel=layoutV4.panels[i];panel.position.set(12.30,0,.6+i*2.4);panel.userData.closedZ=panel.position.z;panel.userData.openZ=5.45+i*.14;panel.name='Panel móvil detrás del ventanal';
+ }
+ for(let z=.6;z<6.95;z+=.23)cyl(shell[0],12.30,1.9,z,.052,3.68,interiorWood);
+ box(shell[1],12.30,3.51,3.3,.13,.08,5.65,metalDark);
+ // Roof footprint covers the projecting balcony with a modest drip edge.
+ const front=-1.48,right=14.08,left=-.22,back=13.64,w=right-left,d=back-front;
+ roofSheet.geometry.dispose();roofSheet.geometry=new T.BoxGeometry(w,.18,d);setBoxUV(roofSheet.geometry,w,.18,d,m.roof);roofSheet.position.set((left+right)/2,-.23,(front+back)/2);
+ const logo=roof.children.find(a=>a.name==='Logo original retroiluminado');if(logo)logo.position.z=front-.16;
+ const band=roof.children.find(a=>a.name==='Acero perimetral');
+ if(band){for(const a of [...band.children]){const p=a.geometry?.parameters;if(!p)continue;if(p.height>1){if(p.width>10){a.position.x=(left+right)/2;a.position.z=a.position.z<0?front:back;a.geometry.dispose();a.geometry=new T.BoxGeometry(w+.24,p.height,.24);setBoxUV(a.geometry,w+.24,p.height,.24,brushedSteel);}else{a.position.x=a.position.x<1?left:right;a.position.z=(front+back)/2;a.geometry.dispose();a.geometry=new T.BoxGeometry(.24,p.height,d+.24);setBoxUV(a.geometry,.24,p.height,d+.24,brushedSteel);}}else if(p.width>10){a.position.set((left+right)/2,-.52,front-.02);a.geometry.dispose();a.geometry=new T.BoxGeometry(w+.24,.045,.28);}}}
+ for(const a of [...roof.children])if(a.material===warmLED&&a.geometry?.parameters.height===.028)roof.remove(a);
+ box(roof,(left+right)/2,-.52,front-.13,w+.24,.028,.035,warmLED);box(roof,right+.13,-.52,(front+back)/2,.035,.028,d+.24,warmLED);
+ // Five tanks remain on their raised platform, with no opaque enclosure.
+ for(const a of [...tech.children]){const p=a.geometry?.parameters;if(a.isMesh&&p&&((p.height>=1.5&&(p.width>4||p.depth>4))||(a.material===interiorWood&&p.height>1.5)))tech.remove(a);}
+ tech.name='Plataforma abierta de cinco tanques';
+ renderer.shadowMap.needsUpdate=true;
+ return {roofBounds:{front,right,left,back},tankCount:tech.children.filter(a=>a.geometry?.parameters.radiusTop===.51).length};
+}
+const facadeV11=reviseFacadeV11();
+
+
+// Timber privacy screen is fixed and belongs only to the ground floor glazing.
+for(const panel of layoutV4.panels)panel.parent?.remove(panel);
+layoutV4.panels.length=0;layoutV4.screenOpen=false;
+for(const a of [...shell[1].children])if(a.material===metalDark&&Math.abs(a.position.x-12.30)<.01&&a.geometry?.parameters.depth===5.65)shell[1].remove(a);
+$('wood-screen').hidden=true;
+
+
+// Upper-storey screen replaced with a substantial glazed enclosure.
+const upperGlazing=new T.Group();upperGlazing.name='Ventanales gruesos del segundo piso';shell[1].add(upperGlazing);
+for(const a of [...shell[1].children]){
+ if(a===upperGlazing)continue;
+ const p=a.geometry?.parameters;
+ if(a.isMesh&&a.material===glassSurface&&a.position.x>12.15&&a.position.x<12.8&&a.position.z<7.05){shell[1].remove(a);a.geometry.dispose();}
+}
+const upperGlass=glassSurface.clone();upperGlass.opacity=.27;upperGlass.roughness=.10;
+for(const [z0,z1]of [[.58,2.68],[2.68,4.78],[4.78,6.95]]){
+ const mid=(z0+z1)/2;
+ const pane=box(upperGlazing,12.47,1.78,mid,.085,3.32,z1-z0-.14,upperGlass);pane.name='Vidrio grueso superior sin madera';
+}
+for(const z of [.58,2.68,4.78,6.95])box(upperGlazing,12.47,1.78,z,.15,3.56,.13,brushedSteel);
+for(const y of [.065,3.495])box(upperGlazing,12.47,y,3.765,.15,.13,6.50,brushedSteel);
+// Remove decorative timber mullions in this exact upper glazing strip.
+for(const a of [...shell[1].children]){
+ const p=a.geometry?.parameters;
+ if(a.isMesh&&a.material===interiorWood&&a.position.x>12.15&&a.position.x<12.8&&a.position.z>=.5&&a.position.z<=7.05&&p?.height>2)shell[1].remove(a);
+}
+
+
+// The second-storey balcony remains open above its safety rail.
+upperGlazing.parent?.remove(upperGlazing);
+upperGlazing.traverse(a=>{if(a.isMesh)a.geometry.dispose();});
+
 const navigation=createMallNavigation();
 const walk={active:false,free:false,floor:0,x:9,z:-2,y:0,yaw:0,pitch:0,targetYaw:0,targetPitch:0,vx:0,vz:0,vy:0,keys:new Set(),stairs:null,dirty:true,last:0,raf:0};
 const setLocalLights=optimiseScene();
@@ -845,7 +938,7 @@ canvas.addEventListener('wheel',e=>{if(walk.active)return;e.preventDefault();e.s
 const resetCamera=$('home').onclick;$('home').onclick=()=>{if(walk.active)exitWalk(false);setView('all');resetCamera();};
 const baseLightV3=$('light').onchange;$('light').onchange=()=>{baseLightV3();const dusk=$('light').value==='sunset';context.userData.sky.material.uniforms.top.value.set(dusk?0x344c73:0x7fabd7);context.userData.sky.material.uniforms.horizon.value.set(dusk?0xf4a067:0xd2e0e5);context.userData.sky.material.uniforms.bottom.value.set(dusk?0x675a53:0x777e7e);sun.color.set(dusk?0xffaf70:0xffecd0);sun.position.y=dusk?5:27;hemi.groundColor.set(dusk?0x82634b:0x888a7b);scene.fog.color.set(dusk?0xc29a80:0xbdcbd1);renderer.toneMappingExposure=dusk?1.13:1;renderer.shadowMap.needsUpdate=true;updateCamera();};
 
- $('wood-screen').onclick=()=>{layoutV4.screenOpen=!layoutV4.screenOpen;layoutV4.panels.forEach((g,i)=>g.position.z=layoutV4.screenOpen?13.15+i*.13:g.userData.closedZ);$('wood-screen').setAttribute('aria-pressed',String(layoutV4.screenOpen));$('wood-screen').textContent=layoutV4.screenOpen?'Cerrar panel de madera · piso 2':'Abrir panel de madera · piso 2';renderer.shadowMap.needsUpdate=true;if(walk.active)wakeWalk();else updateCamera();};
+ $('wood-screen').onclick=()=>{layoutV4.screenOpen=!layoutV4.screenOpen;layoutV4.panels.forEach((g,i)=>g.position.z=layoutV4.screenOpen?g.userData.openZ:g.userData.closedZ);$('wood-screen').setAttribute('aria-pressed',String(layoutV4.screenOpen));$('wood-screen').textContent=layoutV4.screenOpen?'Cerrar panel de madera · piso 2':'Abrir panel de madera · piso 2';renderer.shadowMap.needsUpdate=true;if(walk.active)wakeWalk();else updateCamera();};
  setView('all');resize();
  root.querySelectorAll('[data-view],[data-detail],[data-id="walk-toggle"],[data-id="pan-camera"],[data-id="top"],[data-id="home"],[data-id="in"],[data-id="out"]').forEach(b=>b.hidden=true);
  $('open').closest('label').hidden=true;$('walk-panel').querySelector('.walk-actions').prepend($('wood-screen')); 
